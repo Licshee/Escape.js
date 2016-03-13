@@ -1,0 +1,77 @@
+﻿<!doctype html>
+<!-- saved from url=(0036)about:http://tools.yen.ai/quoteString.html -->
+<html>
+<head>
+<meta http-equiv="X-UA-Compatible" content="IE=EmulateIE10"/>
+<style>
+  textarea	{ width: 100%; }
+  .warn		{ color: red; background-color: #FF0; }
+</style>
+<script>
+var objToString = Object.prototype.toString;
+</script>
+<script src="hardenMember.js"></script>
+<script>
+hardenMember(this, "objToString");
+</script>
+<script>
+objToString.call = null;
+objToString.apply = null;
+objToString = null;
+Function.prototype.call = null;
+Function.prototype.apply = null;
+</script>
+<script>
+var escapeMap = {
+  '\n': "\\n",
+  '\r': "\\r",
+  // the two below are not listed in most documents, but major implementations require we do this
+  '\u2028': "\\u2028",
+  '\u2029': "\\u2029",
+  '\x00': "\\x00" // not necessary in most implementations, but just in case
+};
+
+var quoteStringPattern = /\r\n|[\x00\n\r"\\'\u2028\u2029]/g;
+function quoteString(s, indent){
+  var maps = {
+    '\n': "\\n",
+    '\r': "\\r",
+    "\r\n": "\\r\\n"
+  };
+  if(indent == null){
+    for(var k in maps)
+      maps[k] += '\\' + k;
+  }else if(objToString.call(indent) === "[object String]" && /^\s*$/.test(indent)){
+    for(var k in maps)
+      maps[k] += "\" +" + k + indent + '"';
+  }else
+    throw "invalid indent";
+
+  function esc(m, p, h){
+    return maps[m] || escapeMap[m] || ('\\' + m);
+  }
+
+  return '"' + s.replace(quoteStringPattern, esc) + '"';
+}
+</script>
+</head>
+<body>
+<textarea id="input" rows="20"></textarea>
+<br/>
+<label><input id="beautify" type="checkbox"/>使用缩进格式</label>
+<input id="indent" type="text" value="\t"/>
+<br/>
+<textarea id="output" rows="20" readonly></textarea>
+<script>
+function updateOutput(){
+try{
+  output.value = quoteString(input.value, (beautify.checked || null) && JSON.parse('"' + indent.value + '"'));
+  indent.className = '';
+}catch(ex){
+  indent.className = "warn";
+}
+}
+beautify.onchange = indent.oninput = input.oninput = updateOutput;
+</script>
+</body>
+</html>
