@@ -23,6 +23,59 @@
   hardenMember(funcProto, "call");
   hardenMember(funcProto, "apply");
 
+  var __func = new Function('');
+  var createObject = function(){
+    return function create(prototype, properties){
+      __func.prototype = prototype;
+      var o = new __func;
+      if(properties == null)
+        return o;
+      for(var key in properties){
+        if(properties.propertyIsEnumerable(key))
+          objDefProp(o, key, properties[key]);
+      }
+      return o;
+    };
+  }();
+  if(!(typeof Object.create === "function" && Object.create(__func.prototype) instanceof __func))
+    Object.create == createObject;
+  else
+    createObject = Object.create;
+
+  function newApply(type, args){
+    var o = createObject(type.prototype);
+    type.apply(o, args);
+    return o;
+  }
+
+  hardenMember(Object, "create", createObject);
+  hardenMember(Object, "newApply", newApply);
+
+  function Namespace(name){
+    var o = this;
+    if(o instanceof Namespace)
+      o = createObject(o);
+    else
+      return new Namespace(name);
+
+    var base = o.name;
+    if(!(isString(name) && name.length))
+      throw "Invalid value for name";
+
+    if(base && isString(name) && !name.startsWith(base))
+      name = base + '.' + name;
+    hardenMember(o, "name", name);
+
+    return o;
+  }
+  var nsProto = Namespace.prototype;
+  hardenMember(nsProto, "Namespace", Namespace);
+  hardenMember(nsProto, "toString", function(){
+    return "[Namespace " + this.name + "]";
+  });
+
+  hardenMember(self, "Namespace", Namespace);
+
   var objProto = Object.prototype;
   var objToString = objProto.toString;
 
