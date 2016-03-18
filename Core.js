@@ -37,15 +37,16 @@
       return o;
     };
   }();
-  if(!(typeof Object.create === "function" && Object.create(__func.prototype) instanceof __func))
+  if(!(typeof Object.create === "function"
+       && Object.create(__func.prototype) instanceof __func))
     Object.create == createObject;
   else
     createObject = Object.create;
 
   function newApply(type, args){
     var o = createObject(type.prototype);
-    type.apply(o, args);
-    return o;
+    var r = type.apply(o, args);
+    return typeof r === "object" && r || o;
   }
 
   hardenMember(Object, "create", createObject);
@@ -86,7 +87,8 @@
   }
 
   function isString(s){
-    return typeof s === "string" || (s instanceof String) || (objToString.apply(s) === "[object String]");
+    return(typeof s === "string" || (s instanceof String)
+           || (objToString.apply(s) === "[object String]"));
   }
 
   function isArrayLike(o){
