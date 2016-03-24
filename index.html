@@ -1,0 +1,33 @@
+﻿<!doctype html>
+<!-- saved from url=(0036)about:http://tools.yen.ai/quoteString.html -->
+<html>
+<head>
+<meta http-equiv="X-UA-Compatible" content="IE=EmulateIE10"/>
+<style>
+  textarea	{ width: 100%; }
+  .warn		{ color: red; background-color: #FF0; }
+</style>
+<script src="Core.js"></script>
+</head>
+<body>
+<textarea id="input" rows="20"></textarea>
+<br/>
+<label><input id="beautify" type="checkbox"/>Present in multi-line expression</label>
+<input id="indent" type="text" value="\t"/>
+<br/>
+<textarea id="output" rows="20" readonly></textarea>
+<script>
+function updateOutput(){
+try{
+  var format = (beautify.checked || void 0) && JSON.parse('"' + indent.value + '"');
+  output.value = '"' + escapeString(input.value, format) + '"';
+  indent.className = '';
+}catch(ex){
+  console.log(ex);
+  indent.className = "warn";
+}
+}
+beautify.onchange = indent.oninput = input.oninput = updateOutput;
+</script>
+</body>
+</html>
